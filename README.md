@@ -1,323 +1,168 @@
-# X Profile MCP Server
+# x-mcp
 
-A Model Context Protocol (MCP) server that provides Claude with comprehensive X (Twitter) interaction capabilities. Using OAuth 2.0 authentication, this server enables both public data access and personal account management.
+A Model Context Protocol (MCP) server for the X (Twitter) API. Built with the official [@xdevplatform/xdk](https://github.com/xdevplatform/xdk) SDK and OAuth 2.0 PKCE authentication.
 
 ## Features
 
-- **User Profiles**: Fetch detailed user information including bio, follower count, and verification status
-- **Timeline Access**: Retrieve recent tweets from any public user or your personal home timeline
-- **Tweet Search**: Search for tweets by keywords, hashtags, or phrases  
-- **Network Exploration**: Get followers and following lists for any user
-- **Personal Profile**: Access your authenticated profile information
-- **Bookmarks**: View, add, and remove tweet bookmarks
-- **Likes**: View your liked tweets and like/unlike tweets
-- **Rich Formatting**: Well-formatted responses with engagement metrics
-- **Secure Authentication**: OAuth 2.0 with automatic token refresh
+- **23 tools** across users, posts, bookmarks, likes, and lists
+- **OAuth 2.0 PKCE** with automatic token refresh
+- **Dual output**: markdown (human-readable) or JSON (structured)
+- **MCP tool annotations**: `readOnlyHint`, `destructiveHint`, `idempotentHint`
 
 ## Prerequisites
 
-- Node.js v18.x or higher
-- X/Twitter OAuth 2.0 App credentials (Client ID and Secret)
+- Node.js v18+
+- pnpm
+- X API OAuth 2.0 credentials (Client ID and Secret)
 
-## Installation
+## Setup
 
-1. **Clone or download this repository**
-
-2. **Install dependencies**:
+1. **Install dependencies**:
    ```bash
    pnpm install
    ```
 
-3. **Set up environment variables**:
+2. **Configure environment**:
    ```bash
    cp .env.example .env
    ```
-   
-   Edit `.env` and add your X/Twitter API credentials:
-   ```bash
-   # OAuth 2.0 Client Credentials - Required for all operations
-   X_CLIENT_ID=your_client_id_here
-   X_CLIENT_SECRET=your_client_secret_here
+   Edit `.env`:
+   ```
+   X_CLIENT_ID=your_oauth2_client_id
+   X_CLIENT_SECRET=your_oauth2_client_secret
    X_REDIRECT_URI=http://localhost:3000/callback
    ```
 
-## Getting X/Twitter API Credentials
+3. **Authenticate**:
+   ```bash
+   pnpm run setup-auth
+   ```
 
-1. Go to [Twitter Developer Portal](https://developer.twitter.com/en/portal/dashboard)
-2. Create a new app or use an existing one
-3. Go to the app "Settings" tab
-4. Edit "Authentication settings"
-5. Enable "OAuth 2.0" 
-6. Set "Type of App" to "Web App"
-7. Add callback URL: `http://localhost:3000/callback`
-8. Save settings
-9. Copy your "Client ID" and "Client Secret" from the "Keys and Tokens" tab
+4. **Build**:
+   ```bash
+   pnpm run build
+   ```
 
-**Important**: Ensure your app has these scopes enabled:
-- `tweet.read` - Read tweets  
-- `users.read` - Read user profiles
-- `bookmark.read` - Read bookmarks
-- `bookmark.write` - Manage bookmarks
-- `like.read` - Read likes
-- `like.write` - Manage likes
-- `offline.access` - Enable token refresh
+## Getting X API Credentials
 
-## Usage
-
-### 1. Authenticate with X/Twitter (Required)
-
-Before using the server, you must authenticate:
-
-```bash
-pnpm run setup-auth
-```
-
-This will:
-- Generate an OAuth 2.0 authorization URL
-- Open your browser for authentication
-- Capture the authorization callback
-- Save your access tokens for all operations
-
-### 2. Build the server
-```bash
-pnpm run build
-```
-
-### 3. Run the server
-
-**Development mode:**
-```bash
-pnpm run dev
-```
-
-**Production mode:**
-```bash
-pnpm start
-```
-
-### Reset Authentication (if needed)
-```bash
-pnpm run reset-auth
-```
+1. Go to the [X Developer Portal](https://developer.x.com/en/portal/dashboard)
+2. Create a Project and App
+3. Enable **OAuth 2.0** in app settings
+4. Set app type to **Web App**
+5. Add callback URL: `http://localhost:3000/callback`
+6. Copy **Client ID** and **Client Secret** from the OAuth 2.0 section
 
 ## Claude Desktop Integration
 
-Add this server to your Claude Desktop configuration file:
-
-**Location**: `~/Library/Application Support/Claude/claude_desktop_config.json` (macOS)
+Add to `~/Library/Application Support/Claude/claude_desktop_config.json` (macOS):
 
 ```json
 {
   "mcpServers": {
-    "x-profile": {
+    "x-mcp": {
       "command": "node",
-      "args": ["/path/to/your/project/build/index.js"],
+      "args": ["/path/to/x-mcp/dist/index.js"],
       "env": {
-        "X_BEARER_TOKEN": "your_bearer_token_here"
+        "X_TOKENS_PATH": "/path/to/x-mcp/.tokens.json",
+        "X_CLIENT_ID": "your_client_id",
+        "X_CLIENT_SECRET": "your_client_secret",
+        "X_REDIRECT_URI": "http://localhost:3000/callback"
       }
     }
   }
 }
 ```
 
-Alternative using development mode:
-```json
-{
-  "mcpServers": {
-    "x-profile": {
-      "command": "npx",
-      "args": ["tsx", "/path/to/your/project/src/index.ts"],
-      "env": {
-        "X_BEARER_TOKEN": "your_bearer_token_here"
-      }
-    }
-  }
-}
-```
+## Tools
 
-## Available Tools
+### Users
 
-### 1. `get_user_profile`
-Fetch detailed user profile information.
+| Tool | Description | Parameters |
+|------|-------------|------------|
+| `x_get_user_profile` | Fetch a user profile by username | `username`, `response_format` |
+| `x_get_my_profile` | Get the authenticated user's profile | `response_format` |
+| `x_get_followers` | Get a user's followers | `username`, `limit`, `response_format` |
+| `x_get_following` | Get accounts a user follows | `username`, `limit`, `response_format` |
 
-**Parameters:**
-- `username` (string): X/Twitter username (without @)
+### Posts
 
-**Example:**
-```
-Get the profile for elonmusk
-```
+| Tool | Description | Parameters |
+|------|-------------|------------|
+| `x_get_user_posts` | Fetch recent posts from a user (excludes retweets/replies) | `username`, `limit`, `response_format` |
+| `x_get_my_timeline` | Get your home timeline (reverse chronological) | `limit`, `response_format` |
+| `x_search_posts` | Search recent posts (last 7 days) | `query`, `limit`, `response_format` |
 
-### 2. `get_user_timeline`
-Retrieve recent tweets from a user's timeline.
+### Bookmarks
 
-**Parameters:**
-- `username` (string): X/Twitter username (without @)
-- `limit` (number, optional): Number of tweets to fetch (1-100, default: 10)
+| Tool | Description | Parameters |
+|------|-------------|------------|
+| `x_get_my_bookmarks` | Fetch your bookmarked posts | `limit`, `response_format` |
+| `x_add_bookmark` | Bookmark a post | `tweet_id` |
+| `x_remove_bookmark` | Remove a bookmark | `tweet_id` |
 
-**Example:**
-```
-Get the last 5 tweets from openai
-```
+### Likes
 
-### 3. `search_tweets`
-Search for tweets by keywords, hashtags, or phrases.
+| Tool | Description | Parameters |
+|------|-------------|------------|
+| `x_get_my_likes` | Fetch your liked posts | `limit`, `response_format` |
+| `x_like_post` | Like a post | `tweet_id` |
+| `x_unlike_post` | Unlike a post | `tweet_id` |
 
-**Parameters:**
-- `query` (string): Search query
-- `limit` (number, optional): Number of tweets to fetch (1-100, default: 10)
+### Lists
 
-**Example:**
-```
-Search for tweets about #MachineLearning
-```
+| Tool | Description | Parameters |
+|------|-------------|------------|
+| `x_get_my_lists` | Get your owned lists | `response_format` |
+| `x_get_list` | Get list details by ID | `list_id`, `response_format` |
+| `x_get_list_posts` | Get posts from a list | `list_id`, `limit`, `response_format` |
+| `x_get_list_members` | Get members of a list | `list_id`, `limit`, `response_format` |
+| `x_create_list` | Create a new list | `name`, `description`, `private` |
+| `x_update_list` | Update a list | `list_id`, `name`, `description`, `private` |
+| `x_delete_list` | Delete a list | `list_id` |
+| `x_add_list_member` | Add a user to a list | `list_id`, `username` |
+| `x_remove_list_member` | Remove a user from a list | `list_id`, `username` |
 
-### 4. `get_user_followers`
-Fetch a list of users following the specified account.
+## Project Structure
 
-**Parameters:**
-- `username` (string): X/Twitter username (without @)
-- `limit` (number, optional): Number of followers to fetch (1-1000, default: 10)
-
-**Example:**
-```
-Get 20 followers of sama
-```
-
-### 5. `get_user_following`
-Fetch a list of users that the specified account follows.
-
-**Parameters:**
-- `username` (string): X/Twitter username (without @)
-- `limit` (number, optional): Number of following accounts to fetch (1-1000, default: 10)
-
-**Example:**
-```
-Get accounts followed by karpathy
-```
-
-### 6. `get_my_profile`
-Get your authenticated X/Twitter profile information.
-
-**Parameters:** None
-
-**Example:**
-```
-Get my profile information
-```
-
-### 7. `get_my_bookmarks`
-Fetch your bookmarked tweets.
-
-**Parameters:**
-- `limit` (number, optional): Number of bookmarks to fetch (1-100, default: 10)
-
-**Example:**
-```
-Show me my last 20 bookmarks
-```
-
-### 8. `manage_bookmark`
-Add or remove a tweet bookmark.
-
-**Parameters:**
-- `tweetId` (string): Tweet ID to bookmark/unbookmark
-- `action` (string): Either "add" or "remove"
-
-**Example:**
-```
-Bookmark the tweet with ID 1234567890
-```
-
-### 9. `get_my_likes`
-Fetch your liked tweets.
-
-**Parameters:**
-- `limit` (number, optional): Number of liked tweets to fetch (1-100, default: 10)
-
-**Example:**
-```
-Show me my recent liked tweets
-```
-
-### 10. `manage_like`
-Like or unlike a tweet.
-
-**Parameters:**
-- `tweetId` (string): Tweet ID to like/unlike
-- `action` (string): Either "like" or "unlike"
-
-**Example:**
-```
-Like the tweet with ID 1234567890
-```
-
-### 11. `get_my_timeline`
-Get your home timeline tweets.
-
-**Parameters:**
-- `limit` (number, optional): Number of timeline tweets to fetch (1-100, default: 10)
-
-**Example:**
-```
-Show me my home timeline
-```
-
-## Rate Limiting
-
-This server respects X/Twitter API rate limits. If you encounter rate limiting errors:
-
-- Wait for the rate limit window to reset
-- Reduce the number of requests
-- Consider upgrading your API access level
-
-## Error Handling
-
-The server handles various error scenarios:
-
-- **Invalid usernames**: Returns "User not found" message
-- **Private accounts**: Returns appropriate privacy message  
-- **API errors**: Provides descriptive error messages
-- **Rate limits**: Returns rate limit information
-
-## Development
-
-### Project Structure
 ```
 src/
-├── index.ts          # Main MCP server implementation
-├── twitter-client.ts # X/Twitter API client wrapper
-└── tools.ts          # MCP tool implementations
-
-build/                # Compiled JavaScript output
+├── index.ts              # MCP server entry point
+├── constants.ts          # Shared constants
+├── types.ts              # TypeScript interfaces
+├── setup-auth.ts         # OAuth 2.0 setup flow
+├── schemas/
+│   └── common.ts         # Shared Zod schemas
+├── services/
+│   ├── auth-manager.ts   # OAuth 2.0 token management
+│   └── x-client.ts       # X API client wrapper
+├── tools/
+│   ├── users.ts          # User profile tools
+│   ├── tweets.ts         # Post/timeline tools
+│   ├── bookmarks.ts      # Bookmark tools
+│   ├── likes.ts          # Like tools
+│   └── lists.ts          # List management tools
+└── utils/
+    └── formatting.ts     # Response formatting helpers
 ```
 
-### Scripts
-- `pnpm run build` - Compile TypeScript to JavaScript
-- `pnpm run dev` - Run in development mode with tsx
-- `pnpm start` - Run the compiled server
+## Scripts
 
-## Security
+| Command | Description |
+|---------|-------------|
+| `pnpm run build` | Compile TypeScript |
+| `pnpm run dev` | Run in development mode |
+| `pnpm start` | Run compiled server |
+| `pnpm run setup-auth` | Authenticate with X |
+| `pnpm run reset-auth` | Reset saved tokens |
 
-- Never commit your `.env` file with API credentials
-- Use Bearer tokens for read-only operations when possible
-- Be mindful of API rate limits to avoid account suspension
+## API Access Tiers
+
+| Tier | What works |
+|------|-----------|
+| **Free** | Post creation, basic read access |
+| **Basic** ($200/mo) | All read/write endpoints, followers/following |
+| **Pro** ($5,000/mo) | Higher rate limits, full search |
 
 ## License
 
-MIT License - see LICENSE file for details
-
-## Contributing
-
-1. Fork the repository
-2. Create a feature branch
-3. Make your changes
-4. Add tests if applicable
-5. Submit a pull request
-
-## Support
-
-For issues and questions:
-1. Check the [X/Twitter API documentation](https://developer.twitter.com/en/docs/twitter-api)
-2. Review the [MCP specification](https://modelcontextprotocol.io/)
-3. Open an issue in this repository
+MIT

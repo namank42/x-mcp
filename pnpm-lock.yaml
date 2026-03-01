@@ -11,12 +11,12 @@ importers:
       '@modelcontextprotocol/sdk':
         specifier: ^1.17.5
         version: 1.17.5
+      '@xdevplatform/xdk':
+        specifier: ^0.5.0
+        version: 0.5.0
       dotenv:
         specifier: ^16.4.7
         version: 16.6.1
-      twitter-api-v2:
-        specifier: ^1.18.2
-        version: 1.27.0
       zod:
         specifier: ^3.24.1
         version: 3.25.76
@@ -195,6 +195,15 @@ packages:
 
   '@types/node@22.18.1':
     resolution: {integrity: sha512-rzSDyhn4cYznVG+PCzGe1lwuMYJrcBS1fc3JqSa2PvtABwWo+dZ1ij5OVok3tqfpEBCBoaR4d7upFJk73HRJDw==}
+
+  '@xdevplatform/xdk@0.5.0':
+    resolution: {integrity: sha512-Ye3yAmJOhal7wqvq6z8iJgSxq4+ytQmPFMMkyg/cPcdoeebqHZBdwTmc3T78kTbUwQy8NoCFRjgTrC+n7lmPnA==}
+    engines: {node: '>=16.14'}
+    peerDependencies:
+      node-fetch: ^3.3.0
+    peerDependenciesMeta:
+      node-fetch:
+        optional: true
 
   accepts@2.0.0:
     resolution: {integrity: sha512-5cvg6CtKwfgdmVqY1WIiXKc3Q1bkRqGLi+2W/6ao+6Y7gu/RCwRuAhGEzh5B4KlszSuTLgZYuqFqo5bImjNKng==}
@@ -532,9 +541,6 @@ packages:
     engines: {node: '>=18.0.0'}
     hasBin: true
 
-  twitter-api-v2@1.27.0:
-    resolution: {integrity: sha512-hbIFwzg0NeOcFOdmJqtKMCXjLjc0INff/7NwhnZ2zpnw65oku8i+0eMxo5M0iTc1hs+inD/IpDw3S0Xh2c45QQ==}
-
   type-is@2.0.1:
     resolution: {integrity: sha512-OZs6gsjF4vMp32qrCbiVSkrFmXtG/AZhY3t0iAMrMBiAZyV9oALtXO8hsrHbMXF9x6L3grlFuwW2oAz7cav+Gw==}
     engines: {node: '>= 0.6'}
@@ -674,6 +680,8 @@ snapshots:
   '@types/node@22.18.1':
     dependencies:
       undici-types: 6.21.0
+
+  '@xdevplatform/xdk@0.5.0': {}
 
   accepts@2.0.0:
     dependencies:
@@ -1060,8 +1068,6 @@ snapshots:
       get-tsconfig: 4.10.1
     optionalDependencies:
       fsevents: 2.3.3
-
-  twitter-api-v2@1.27.0: {}
 
   type-is@2.0.1:
     dependencies:
